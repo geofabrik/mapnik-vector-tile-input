@@ -42,6 +42,11 @@ mapnik::feature_ptr mbtiles_vector_featureset::next()
     return mapnik::feature_ptr();
 }
 
+int mbtiles_vector_featureset::convert_y(const int y) const
+{
+    return (1 << zoom_) - 1 - y;
+}
+
 bool mbtiles_vector_featureset::next_tile()
 {
     ++x_;
@@ -56,7 +61,7 @@ bool mbtiles_vector_featureset::next_tile()
 
 bool mbtiles_vector_featureset::open_tile()
 {
-    std::string sql = (boost::format("SELECT tile_data FROM tiles WHERE zoom_level = %1% AND tile_column = %2% AND tile_row = %3%") % zoom_ % x_ % y_).str();
+    std::string sql = (boost::format("SELECT tile_data FROM tiles WHERE zoom_level = %1% AND tile_column = %2% AND tile_row = %3%") % zoom_ % x_ % convert_y(y_)).str();
     std::shared_ptr<sqlite_resultset> result (database_->execute_query(sql));
     int size = 0;
     char const* blob = nullptr;

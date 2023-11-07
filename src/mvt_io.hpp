@@ -121,7 +121,10 @@ class mvt_io
     const int tile_extent_ = -1;
     std::unique_ptr<mvt_layer> layer_;
 
-    void read_layer(protozero::pbf_reader& l);
+    /**
+     * Read a layer from PBF. Returns true if requested layer was parsed.
+     */
+    bool read_layer(protozero::pbf_reader& l);
 //    void read_layer(protozero::pbf_message<mvt_message::layer>& l);
 //    void read_layers();
 

@@ -159,7 +159,7 @@ mapnik::feature_ptr mvt_layer::next_feature()
     return mapnik::feature_ptr();
 }
 
-void mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
+bool mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
 //void mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
 {
     layer_.reset(new mvt_layer(x_, y_, zoom_));
@@ -252,6 +252,8 @@ void mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
         }
     }
     layer_->finish_reading();
+    std::cerr << '\n';
+    return !ignore_layer;
 }
 
 mapnik::feature_ptr mvt_io::next()
@@ -270,23 +272,15 @@ mvt_io::mvt_io(std::string&& data, const uint32_t x, const uint32_t y, const uin
         zoom_(zoom),
         layer_name_(layer_name)
 {
-    while (reader_.next())
-    {
-        switch (reader_.tag_and_type()) {
-        case tag_and_type(static_cast<uint32_t>(mvt_message::tile::layer), protozero::pbf_wire_type::length_delimited): {
-            std::cerr << "got layer\n";
-            const auto data_view(reader_.get_view());
+    while (reader_.next(static_cast<uint32_t>(mvt_message::tile::layer))) {
+        std::cerr << "got layer\n";
+        const auto data_view(reader_.get_view());
 //            protozero::pbf_message<mvt_message::layer> msg_layer(reader_.get_message());
-            protozero::pbf_reader msg_layer(data_view);
-            read_layer(msg_layer);
+        protozero::pbf_reader msg_layer(data_view);
+        if (read_layer(msg_layer)) {
+            break;
+        }
 //            read_layers();
-            break;
-        }
-        default:
-            std::cerr << "got tag " << reader_.tag() << " type " << static_cast<uint32_t>(reader_.wire_type()) << '\n';
-            reader_.skip();
-            break;
-        }
     }
 }
 

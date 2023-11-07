@@ -55,6 +55,10 @@ private:
     int x_ = 0;
     /// y index of the currently accessed tile
     int y_ = 0;
+    /**
+     * Transform Y index (tile_row) from z/x/y to TMS schema.
+     */
+    int convert_y(const int y) const;
 
     bool next_tile();
     bool open_tile();
