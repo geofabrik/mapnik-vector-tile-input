@@ -9,6 +9,7 @@
 #include "vector_tile_geometry_decoder.hpp"
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/well_known_srs.hpp>
+#include <stdexcept>
 
 
 mvt_layer::mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom)
@@ -22,7 +23,7 @@ mvt_layer::mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom)
     tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution_;
 }
 
-void mvt_layer::add_feature(protozero::pbf_message<mvt_message::feature>&& feature)
+void mvt_layer::add_feature(protozero::pbf_message<mvt_message::feature> feature)
 {
     features_.push_back(feature);
 }
@@ -158,33 +159,45 @@ mapnik::feature_ptr mvt_layer::next_feature()
     return mapnik::feature_ptr();
 }
 
-void mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
+void mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
+//void mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
 {
     layer_.reset(new mvt_layer(x_, y_, zoom_));
+    std::cerr << "Message layer\n";
+    bool ignore_layer = false;
     while (pbf_layer.next())
     {
+        if (ignore_layer) {
+            pbf_layer.skip();
+            continue;
+        }
         switch (pbf_layer.tag())
         {
-        case mvt_message::layer::name:
+        case static_cast<uint32_t>(mvt_message::layer::name):
         {
-            std::cerr << "Message layer\n";
             std::string name = pbf_layer.get_string();
+            std::cerr << "  name '" << name << "' expected '" << layer_name_ << "'\n";
             if (name != layer_name_)
             {
-                return;
+                std::cerr << "    skipping\n";
+                ignore_layer = true;
             }
             layer_->set_name(std::move(name));
             break;
         }
-        case mvt_message::layer::extent:
+        case static_cast<uint32_t>(mvt_message::layer::extent):
+            std::cerr << "  extent\n";
             layer_->set_extent(pbf_layer.get_uint32());
             break;
-        case mvt_message::layer::keys:
+        case static_cast<uint32_t>(mvt_message::layer::keys):
+            std::cerr << "  keys\n";
             layer_->add_key(pbf_layer.get_string());
             break;
-        case mvt_message::layer::values:
+        case static_cast<uint32_t>(mvt_message::layer::values):
         {
-            protozero::pbf_message<mvt_message::value> val_msg = pbf_layer.get_message();
+            std::cerr << "  values\n";
+            const auto data_view(pbf_layer.get_view());
+            protozero::pbf_message<mvt_message::value> val_msg (data_view);
             while (val_msg.next())
             {
                 switch(val_msg.tag()) {
@@ -210,44 +223,35 @@ void mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
                         layer_->add_value(val_msg.get_bool());
                         break;
                     default:
+                        val_msg.skip();
                         throw std::runtime_error("unknown Value type " + std::to_string(static_cast<int>(val_msg.tag())) + " in layer->values");
                 }
             }
             break;
         }
-        case mvt_message::layer::features:
+        case static_cast<uint32_t>(mvt_message::layer::features):
         {
-            protozero::pbf_message<mvt_message::feature> f_msg(pbf_layer.get_view());
-            layer_->add_feature(std::move(f_msg));
+            std::cerr << "  features\n";
+            const auto data_view(pbf_layer.get_view());
+            protozero::pbf_message<mvt_message::feature> f_msg (data_view);
+            layer_->add_feature(f_msg);
+            break;
+        }
+        case static_cast<uint32_t>(mvt_message::layer::version):
+        {
+            uint32_t version = pbf_layer.get_uint32();
+            std::cerr << "  version " << version << '\n';
+            if (version != 2) {
+                throw std::runtime_error("Vector tile does not have major version 2.");
+            }
             break;
         }
         default:
+            std::cerr << "  other (tag " << static_cast<uint32_t>(pbf_layer.tag()) << " wire_type " << static_cast<uint32_t>(pbf_layer.wire_type()) << ")\n";
             pbf_layer.skip();
         }
     }
     layer_->finish_reading();
-}
-
-void mvt_io::read_layers()
-{
-    protozero::pbf_message<mvt_message::tile> pbf_layer = message_.get_message();
-//    protozero::pbf_reader pbf_layer = message_.get_message();
-
-    while (pbf_layer.next())
-    {
-        switch (pbf_layer.tag())
-        {
-        case mvt_message::tile::layer:
-        {
-            protozero::pbf_message<mvt_message::layer> msg_layer(pbf_layer.get_view());
-            read_layer(msg_layer);
-            break;
-        }
-        default:
-            throw std::runtime_error{std::string("Unsupported message ") + std::to_string(static_cast<uint32_t>(pbf_layer.tag())) + " in vector tile"};
-            break;
-        }
-    }
 }
 
 mapnik::feature_ptr mvt_io::next()
@@ -260,17 +264,29 @@ mapnik::feature_ptr mvt_io::next()
 }
 
 mvt_io::mvt_io(std::string&& data, const uint32_t x, const uint32_t y, const uint32_t zoom, std::string layer_name)
-        : message_(data),
+        : reader_(data),
         x_(x),
         y_(y),
         zoom_(zoom),
         layer_name_(layer_name)
 {
-    while (message_.next(mvt_message::tile::layer, protozero::pbf_wire_type::length_delimited))
+    while (reader_.next())
     {
-        protozero::pbf_message<mvt_message::layer> msg_layer(message_.get_message());
-        read_layer(msg_layer);
-//        read_layers();
+        switch (reader_.tag_and_type()) {
+        case tag_and_type(static_cast<uint32_t>(mvt_message::tile::layer), protozero::pbf_wire_type::length_delimited): {
+            std::cerr << "got layer\n";
+            const auto data_view(reader_.get_view());
+//            protozero::pbf_message<mvt_message::layer> msg_layer(reader_.get_message());
+            protozero::pbf_reader msg_layer(data_view);
+            read_layer(msg_layer);
+//            read_layers();
+            break;
+        }
+        default:
+            std::cerr << "got tag " << reader_.tag() << " type " << static_cast<uint32_t>(reader_.wire_type()) << '\n';
+            reader_.skip();
+            break;
+        }
     }
 }
 

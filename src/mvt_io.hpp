@@ -97,7 +97,7 @@ class mvt_layer
     uint32_t extent_ = 4096;
 public:
     explicit mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom);
-    void add_feature(protozero::pbf_message<mvt_message::feature>&& feature);
+    void add_feature(protozero::pbf_message<mvt_message::feature> feature);
     bool has_features() const;
     void add_key(std::string&& key);
     void add_value(pbf_attr_value_type value);
@@ -113,7 +113,7 @@ public:
 
 class mvt_io
 {
-    protozero::pbf_message<mvt_message::tile> message_;
+    protozero::pbf_reader reader_;
     const uint32_t x_;
     const uint32_t y_;
     const uint32_t zoom_;
@@ -121,8 +121,9 @@ class mvt_io
     const int tile_extent_ = -1;
     std::unique_ptr<mvt_layer> layer_;
 
-    void read_layer(protozero::pbf_message<mvt_message::layer>& l);
-    void read_layers();
+    void read_layer(protozero::pbf_reader& l);
+//    void read_layer(protozero::pbf_message<mvt_message::layer>& l);
+//    void read_layers();
 
 //    /// Transform pixel coordinates to Mercator coordinates, requires coordinate of top left corner of the tile.
 //    double pixel_x_to_mercator(const double x);
