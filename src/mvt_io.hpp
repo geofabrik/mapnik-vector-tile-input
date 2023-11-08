@@ -15,24 +15,6 @@
 #include <mapnik/unicode.hpp>
 #include "mvt_message.hpp"
 
-//enum class mvt_value_type : char {
-//    unsupported = 0,
-//    value_integer = 1,
-//    value_double = 2,
-//    value_unicode = 3,
-//    value_bool = 4
-//};
-
-using key_value_index = std::vector<uint32_t>;
-
-//struct mvt_feature
-//{
-//    key_value_index key_indexes_;
-//    key_value_index value_indexes_;
-//    std::vector<uint32_t> geom_encoded_;
-//    mvt_message::geom_type geom_type_ = mvt_message::geom_type::unknown;
-//};
-
 using pbf_attr_value_type = mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>;
 
 struct value_visitor
@@ -81,7 +63,8 @@ struct value_visitor
 
 class mvt_layer
 {
-    std::vector<protozero::pbf_message<mvt_message::feature>> features_;
+    // We have to store the features as strings because they go out of scope otherwise (leading to PBF parsing errors).
+    std::vector<std::string> features_;
     size_t feature_index_ = 0;
     std::vector<std::string> keys_;
     std::vector<pbf_attr_value_type> values_;
@@ -97,7 +80,7 @@ class mvt_layer
     uint32_t extent_ = 4096;
 public:
     explicit mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom);
-    void add_feature(protozero::pbf_message<mvt_message::feature> feature);
+    void add_feature(const protozero::data_view& feature);
     bool has_features() const;
     void add_key(std::string&& key);
     void add_value(pbf_attr_value_type value);
@@ -105,8 +88,6 @@ public:
     void set_name(std::string&& name);
     void set_extent(uint32_t extent);
     mapnik::feature_ptr next_feature();
-//    std::vector<std::string>& keys() const;
-//    std::vector<std::string>& values() const;
     uint32_t extent() const;
     void finish_reading();
 };
@@ -124,13 +105,7 @@ class mvt_io
     /**
      * Read a layer from PBF. Returns true if requested layer was parsed.
      */
-    bool read_layer(protozero::pbf_reader& l);
-//    void read_layer(protozero::pbf_message<mvt_message::layer>& l);
-//    void read_layers();
-
-//    /// Transform pixel coordinates to Mercator coordinates, requires coordinate of top left corner of the tile.
-//    double pixel_x_to_mercator(const double x);
-//    double pixel_y_to_mercator(const double y);
+    bool read_layer(protozero::pbf_message<mvt_message::layer>& l);
 
 public:
     explicit mvt_io(std::string&& data, const uint32_t x, const uint32_t y, const uint32_t zoom, std::string layer_name);

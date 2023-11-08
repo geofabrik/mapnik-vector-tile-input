@@ -27,15 +27,31 @@ mbtiles_vector_featureset::mbtiles_vector_featureset(std::shared_ptr<sqlite_conn
     ymax_ = static_cast<int>(((width / 2) - extent_.maxy()) * (tile_count / width));
     x_ = xmin_;
     y_ = ymin_;
+    open_tile();
 }
 
-mbtiles_vector_featureset::~mbtiles_vector_featureset() {}
+mbtiles_vector_featureset::~mbtiles_vector_featureset() { }
+
+bool mbtiles_vector_featureset::valid() const
+{
+    return vector_tile_.get() != nullptr;
+}
 
 mapnik::feature_ptr mbtiles_vector_featureset::next()
 {
     // If current tile is processed completely, go forward to the next tile.
     // else step forward to the next feature
-    while (next_tile() && open_tile() && vector_tile_)
+    mapnik::feature_ptr f = mapnik::feature_ptr();
+    if (!valid())
+    {
+        return f;
+    }
+    f = vector_tile_->next();
+    if (f)
+    {
+        return f;
+    }
+    while (next_tile() && open_tile() && valid())
     {
         return vector_tile_->next();
     }
@@ -77,11 +93,11 @@ bool mbtiles_vector_featureset::open_tile()
     if (mapnik::vector_tile_impl::is_gzip_compressed(blob, size) ||
         mapnik::vector_tile_impl::is_zlib_compressed(blob, size))
     {
-        std::cerr << "decompressing\n";
         std::string decompressed;
         mapnik::vector_tile_impl::zlib_decompress(blob, size, decompressed);
         vector_tile_.reset(new mvt_io(std::move(decompressed), x_, y_, zoom_, layer_));
+    } else {
+        vector_tile_.reset(new mvt_io(std::string(blob, size), x_, y_, zoom_, layer_));
     }
-    vector_tile_.reset(new mvt_io(std::string(blob, size), x_, y_, zoom_, layer_));
     return true;
 }

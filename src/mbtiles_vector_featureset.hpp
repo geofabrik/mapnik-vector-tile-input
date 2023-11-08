@@ -42,6 +42,7 @@ public:
     virtual ~mbtiles_vector_featureset();
     mapnik::feature_ptr next();
 private:
+    bool valid() const;
     std::shared_ptr<sqlite_connection> database_;
     int zoom_;
     mapnik::box2d<double> const& extent_;

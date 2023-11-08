@@ -23,9 +23,9 @@ mvt_layer::mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom)
     tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution_;
 }
 
-void mvt_layer::add_feature(protozero::pbf_message<mvt_message::feature> feature)
+void mvt_layer::add_feature(const protozero::data_view& feature)
 {
-    features_.push_back(feature);
+    features_.emplace_back(feature);
 }
 
 bool mvt_layer::has_features() const
@@ -53,6 +53,11 @@ void mvt_layer::set_extent(uint32_t extent)
     extent_ = extent;
 }
 
+uint32_t mvt_layer::extent() const
+{
+    return extent_;
+}
+
 void mvt_layer::finish_reading()
 {
     num_keys_ = keys_.size();
@@ -64,7 +69,8 @@ mapnik::feature_ptr mvt_layer::next_feature()
 {
     while (feature_index_ < features_.size())
     {
-        protozero::pbf_message<mvt_message::feature> f = features_.at(feature_index_);
+        const protozero::data_view d (features_.at(feature_index_));
+        protozero::pbf_reader f (d);
         mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_, feature_index_);
         ++feature_index_;
         mvt_message::geom_type geometry_type = mvt_message::geom_type::unknown;
@@ -75,34 +81,34 @@ mapnik::feature_ptr mvt_layer::next_feature()
         {
             switch(f.tag())
             {
-                case mvt_message::feature::id:
+                case static_cast<uint32_t>(mvt_message::feature::id):
                     feature->set_id(f.get_uint64());
                     break;
-                case mvt_message::feature::tags:
+                case static_cast<uint32_t>(mvt_message::feature::tags):
+                {
+                    auto tag_iterator = f.get_packed_uint32();
+                    for (auto _i = tag_iterator.begin(); _i != tag_iterator.end();)
                     {
-                        auto tag_iterator = f.get_packed_uint32();
-                        for (auto _i = tag_iterator.begin(); _i != tag_iterator.end();)
+                        std::size_t key_name = *(_i++);
+                        if (_i == tag_iterator.end())
                         {
-                            std::size_t key_name = *(_i++);
-                            if (_i == tag_iterator.end())
+                            throw std::runtime_error("Vector Tile has a feature with an odd number of tags, therefore the tile is invalid.");
+                        }
+                        std::size_t key_value = *(_i++);
+                        if (key_name < num_keys_ && key_value < num_values_)
+                        {
+                            std::string const& name = keys_.at(key_name);
+                            if (feature->has_key(name))
                             {
-                                throw std::runtime_error("Vector Tile has a feature with an odd number of tags, therefore the tile is invalid.");
-                            }
-                            std::size_t key_value = *(_i++);
-                            if (key_name < num_keys_ && key_value < num_values_)
-                            {
-                                std::string const& name = keys_.at(key_name);
-                                if (feature->has_key(name))
-                                {
-                                    pbf_attr_value_type val = values_.at(key_value);
-                                    value_visitor vv(tr_, feature, name);
-                                    mapnik::util::apply_visitor(vv, val);
-                                }
+                                pbf_attr_value_type val = values_.at(key_value);
+                                value_visitor vv(tr_, feature, name);
+                                mapnik::util::apply_visitor(vv, val);
                             }
                         }
                     }
                     break;
-                case mvt_message::feature::type:
+                }
+                case static_cast<uint32_t>(mvt_message::feature::type):
                     has_geometry_type = true;
                     geometry_type = static_cast<mvt_message::geom_type>(f.get_enum());
                     switch (geometry_type)
@@ -116,7 +122,7 @@ mapnik::feature_ptr mvt_layer::next_feature()
                                 + std::to_string(static_cast<protozero::pbf_tag_type>(geometry_type)) + " in feature");
                     }
                     break;
-                case mvt_message::feature::geometry:
+                case static_cast<uint32_t>(mvt_message::feature::geometry):
                     if (has_geometry)
                     {
                         throw std::runtime_error("Vector Tile has a feature with multiple geometry fields, it must have only one of them");
@@ -127,7 +133,6 @@ mapnik::feature_ptr mvt_layer::next_feature()
                 default:
                     throw std::runtime_error("Vector Tile contains unknown field type "
                             + std::to_string(static_cast<protozero::pbf_tag_type>(f.tag())) +" in feature");
-
             }
         }
         if (has_geometry)
@@ -159,11 +164,9 @@ mapnik::feature_ptr mvt_layer::next_feature()
     return mapnik::feature_ptr();
 }
 
-bool mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
-//void mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
+bool mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
 {
     layer_.reset(new mvt_layer(x_, y_, zoom_));
-    std::cerr << "Message layer\n";
     bool ignore_layer = false;
     while (pbf_layer.next())
     {
@@ -173,53 +176,52 @@ bool mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
         }
         switch (pbf_layer.tag())
         {
-        case static_cast<uint32_t>(mvt_message::layer::name):
+        case mvt_message::layer::name:
         {
             std::string name = pbf_layer.get_string();
-            std::cerr << "  name '" << name << "' expected '" << layer_name_ << "'\n";
             if (name != layer_name_)
             {
-                std::cerr << "    skipping\n";
                 ignore_layer = true;
             }
             layer_->set_name(std::move(name));
             break;
         }
-        case static_cast<uint32_t>(mvt_message::layer::extent):
-            std::cerr << "  extent\n";
+        case mvt_message::layer::extent:
             layer_->set_extent(pbf_layer.get_uint32());
+            if (layer_->extent() == 0)
+            {
+                throw std::runtime_error{"Vector tile layer has extent 0."};
+            }
             break;
-        case static_cast<uint32_t>(mvt_message::layer::keys):
-            std::cerr << "  keys\n";
+        case mvt_message::layer::keys:
             layer_->add_key(pbf_layer.get_string());
             break;
-        case static_cast<uint32_t>(mvt_message::layer::values):
+        case mvt_message::layer::values:
         {
-            std::cerr << "  values\n";
             const auto data_view(pbf_layer.get_view());
-            protozero::pbf_message<mvt_message::value> val_msg (data_view);
+            protozero::pbf_reader val_msg(data_view);
             while (val_msg.next())
             {
                 switch(val_msg.tag()) {
-                    case mvt_message::value::string_value:
+                    case static_cast<uint32_t>(mvt_message::value::string_value):
                         layer_->add_value(val_msg.get_string());
                         break;
-                    case mvt_message::value::float_value:
+                    case static_cast<uint32_t>(mvt_message::value::float_value):
                         layer_->add_value(val_msg.get_float());
                         break;
-                    case mvt_message::value::double_value:
+                    case static_cast<uint32_t>(mvt_message::value::double_value):
                         layer_->add_value(val_msg.get_double());
                         break;
-                    case mvt_message::value::int_value:
+                    case static_cast<uint32_t>(mvt_message::value::int_value):
                         layer_->add_value(val_msg.get_int64());
                         break;
-                    case mvt_message::value::uint_value:
+                    case static_cast<uint32_t>(mvt_message::value::uint_value):
                         layer_->add_value(val_msg.get_uint64());
                         break;
-                    case mvt_message::value::sint_value:
+                    case static_cast<uint32_t>(mvt_message::value::sint_value):
                         layer_->add_value(val_msg.get_sint64());
                         break;
-                    case mvt_message::value::bool_value:
+                    case static_cast<uint32_t>(mvt_message::value::bool_value):
                         layer_->add_value(val_msg.get_bool());
                         break;
                     default:
@@ -229,30 +231,27 @@ bool mvt_io::read_layer(protozero::pbf_reader& pbf_layer)
             }
             break;
         }
-        case static_cast<uint32_t>(mvt_message::layer::features):
+        case mvt_message::layer::features:
         {
-            std::cerr << "  features\n";
             const auto data_view(pbf_layer.get_view());
-            protozero::pbf_message<mvt_message::feature> f_msg (data_view);
-            layer_->add_feature(f_msg);
+            layer_->add_feature(data_view);
             break;
         }
-        case static_cast<uint32_t>(mvt_message::layer::version):
+        case mvt_message::layer::version:
         {
             uint32_t version = pbf_layer.get_uint32();
-            std::cerr << "  version " << version << '\n';
             if (version != 2) {
                 throw std::runtime_error("Vector tile does not have major version 2.");
             }
             break;
         }
         default:
-            std::cerr << "  other (tag " << static_cast<uint32_t>(pbf_layer.tag()) << " wire_type " << static_cast<uint32_t>(pbf_layer.wire_type()) << ")\n";
+            std::string msg = "Unsupported tag " + std::to_string(static_cast<uint32_t>(pbf_layer.tag())) + " found in layer message.";
+            throw std::runtime_error(msg);
             pbf_layer.skip();
         }
     }
     layer_->finish_reading();
-    std::cerr << '\n';
     return !ignore_layer;
 }
 
@@ -273,14 +272,11 @@ mvt_io::mvt_io(std::string&& data, const uint32_t x, const uint32_t y, const uin
         layer_name_(layer_name)
 {
     while (reader_.next(static_cast<uint32_t>(mvt_message::tile::layer))) {
-        std::cerr << "got layer\n";
         const auto data_view(reader_.get_view());
-//            protozero::pbf_message<mvt_message::layer> msg_layer(reader_.get_message());
-        protozero::pbf_reader msg_layer(data_view);
+        protozero::pbf_message<mvt_message::layer> msg_layer(data_view);
         if (read_layer(msg_layer)) {
             break;
         }
-//            read_layers();
     }
 }
 
