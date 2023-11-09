@@ -23,8 +23,8 @@ mbtiles_vector_featureset::mbtiles_vector_featureset(std::shared_ptr<sqlite_conn
     constexpr double width = 2.0 * 6378137 * M_PI;
     xmin_ = static_cast<int>((extent_.minx() + width / 2) * (tile_count / width));
     xmax_ = static_cast<int>((extent_.maxx() + width / 2) * (tile_count / width));
-    ymin_ = static_cast<int>(((width / 2) - extent_.miny()) * (tile_count / width));
-    ymax_ = static_cast<int>(((width / 2) - extent_.maxy()) * (tile_count / width));
+    ymin_ = static_cast<int>(((width / 2) - extent_.maxy()) * (tile_count / width));
+    ymax_ = static_cast<int>(((width / 2) - extent_.miny()) * (tile_count / width));
     x_ = xmin_;
     y_ = ymin_;
     open_tile();
