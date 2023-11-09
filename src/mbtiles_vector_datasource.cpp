@@ -260,6 +260,17 @@ void mbtiles_vector_datasource::parse_json()
     //TODO init bounds
 }
 
+mapnik::context_ptr mbtiles_vector_datasource::get_context_with_attributes() const
+{
+    mapnik::context_ptr context = std::make_shared<mapnik::context_type>();
+    const std::vector<mapnik::attribute_descriptor>& desc_ar = desc_.get_descriptors();
+    for (auto const& attr_info : desc_ar)
+    {
+        context->push(attr_info.get_name()); // TODO only push query attributes
+    }
+    return context;
+}
+
 mapnik::featureset_ptr mbtiles_vector_datasource::features(mapnik::query const& q) const
 {
 #ifdef MAPNIK_STATS
@@ -267,7 +278,8 @@ mapnik::featureset_ptr mbtiles_vector_datasource::features(mapnik::query const& 
 #endif
 
     mapnik::box2d<double> const& box = q.get_bbox();
-    return mapnik::featureset_ptr(new mbtiles_vector_featureset(dataset_, zoom_, box, layer_));
+    mapnik::context_ptr context = get_context_with_attributes();
+    return mapnik::featureset_ptr(new mbtiles_vector_featureset(dataset_, context, zoom_, box, layer_));
 }
 
 mapnik::featureset_ptr mbtiles_vector_datasource::features_at_point(mapnik::coord2d const& pt, double tol) const
@@ -277,6 +289,6 @@ mapnik::featureset_ptr mbtiles_vector_datasource::features_at_point(mapnik::coor
 #endif
 
     mapnik::filter_at_point filter(pt, tol);
-
-    return mapnik::featureset_ptr(new mbtiles_vector_featureset(dataset_, zoom_, filter.box_, layer_));
+    mapnik::context_ptr context = get_context_with_attributes();
+    return mapnik::featureset_ptr(new mbtiles_vector_featureset(dataset_, context, zoom_, filter.box_, layer_));
 }

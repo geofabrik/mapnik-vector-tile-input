@@ -59,6 +59,7 @@ public:
 
 private:
     void init(mapnik::parameters const& params);
+    mapnik::context_ptr get_context_with_attributes() const;
     int zoom_from_string(const char* z);
     int zoom_from_string(const std::string& z);
     void parse_json();

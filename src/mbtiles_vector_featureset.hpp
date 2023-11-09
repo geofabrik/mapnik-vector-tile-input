@@ -35,6 +35,7 @@ class mbtiles_vector_featureset : public mapnik::Featureset
 {
 public:
     mbtiles_vector_featureset(std::shared_ptr<sqlite_connection> database,
+        mapnik::context_ptr const& ctx,
         const int zoom,
         mapnik::box2d<double> const& extent,
         const std::string & layer);
@@ -44,6 +45,7 @@ public:
 private:
     bool valid() const;
     std::shared_ptr<sqlite_connection> database_;
+    mapnik::context_ptr context_;
     int zoom_;
     mapnik::box2d<double> const& extent_;
     const std::string& layer_;

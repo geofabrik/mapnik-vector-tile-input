@@ -11,9 +11,10 @@
 #include <math.h>
 
 mbtiles_vector_featureset::mbtiles_vector_featureset(std::shared_ptr<sqlite_connection> database,
-        const int zoom,
+        mapnik::context_ptr const& ctx, const int zoom,
         mapnik::box2d<double> const& extent, const std::string & layer) :
                database_(database),
+               context_(ctx),
                zoom_(zoom),
                extent_(extent),
                layer_(layer),
@@ -89,15 +90,14 @@ bool mbtiles_vector_featureset::open_tile()
     {
         return false;
     }
-    std::cerr << "Opening vector tile " << zoom_ << '/' << x_ << '/' << y_ << '\n';
     if (mapnik::vector_tile_impl::is_gzip_compressed(blob, size) ||
         mapnik::vector_tile_impl::is_zlib_compressed(blob, size))
     {
         std::string decompressed;
         mapnik::vector_tile_impl::zlib_decompress(blob, size, decompressed);
-        vector_tile_.reset(new mvt_io(std::move(decompressed), x_, y_, zoom_, layer_));
+        vector_tile_.reset(new mvt_io(std::move(decompressed), context_, x_, y_, zoom_, layer_));
     } else {
-        vector_tile_.reset(new mvt_io(std::string(blob, size), x_, y_, zoom_, layer_));
+        vector_tile_.reset(new mvt_io(std::string(blob, size), context_, x_, y_, zoom_, layer_));
     }
     return true;
 }

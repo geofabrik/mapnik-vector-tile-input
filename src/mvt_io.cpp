@@ -12,11 +12,12 @@
 #include <stdexcept>
 
 
-mvt_layer::mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom)
+mvt_layer::mvt_layer(const uint32_t x, const uint32_t y, const uint32_t zoom,
+        mapnik::context_ptr const& ctx)
     : keys_(),
     values_(),
-    tr_("utf-8"),
-    ctx_(std::make_shared<mapnik::context_type>())
+    context_(ctx),
+    tr_("utf-8")
 {
     resolution_ = mapnik::EARTH_CIRCUMFERENCE / (1 << zoom);
     tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution_;
@@ -71,7 +72,7 @@ mapnik::feature_ptr mvt_layer::next_feature()
     {
         const protozero::data_view d (features_.at(feature_index_));
         protozero::pbf_reader f (d);
-        mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_, feature_index_);
+        mapnik::feature_ptr feature = mapnik::feature_factory::create(context_, feature_index_);
         ++feature_index_;
         mvt_message::geom_type geometry_type = mvt_message::geom_type::unknown;
         bool has_geometry = false;
@@ -166,7 +167,7 @@ mapnik::feature_ptr mvt_layer::next_feature()
 
 bool mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
 {
-    layer_.reset(new mvt_layer(x_, y_, zoom_));
+    layer_.reset(new mvt_layer(x_, y_, zoom_, context_));
     bool ignore_layer = false;
     while (pbf_layer.next())
     {
@@ -264,8 +265,9 @@ mapnik::feature_ptr mvt_io::next()
     return layer_->next_feature();
 }
 
-mvt_io::mvt_io(std::string&& data, const uint32_t x, const uint32_t y, const uint32_t zoom, std::string layer_name)
+mvt_io::mvt_io(std::string&& data, mapnik::context_ptr const& ctx, const uint32_t x, const uint32_t y, const uint32_t zoom, std::string layer_name)
         : reader_(data),
+        context_(ctx),
         x_(x),
         y_(y),
         zoom_(zoom),
