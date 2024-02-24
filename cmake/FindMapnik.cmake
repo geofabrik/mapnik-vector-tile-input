@@ -55,6 +55,7 @@ else (MAPNIK_LIBRARIES AND MAPNIK_INCLUDE_DIRS AND MAPNIK_DEPS_INCLUDE_DIRS)
   find_path(MAPNIK_DEPS_INCLUDE_DIR
     NAMES
       mapbox/geometry/point.hpp
+      mapbox/variant.hpp
     PATHS
       /usr/include
       /usr/local/include
