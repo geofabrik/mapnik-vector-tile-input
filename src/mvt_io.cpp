@@ -210,7 +210,7 @@ bool mvt_io::read_layer(protozero::pbf_message<mvt_message::layer>& pbf_layer)
             }
             break;
         case mvt_message::layer::keys:
-            layer_->add_key(pbf_layer.get_string());
+            layer_->add_key(std::move(pbf_layer.get_string()));
             break;
         case mvt_message::layer::values:
         {
