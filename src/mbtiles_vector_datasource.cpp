@@ -112,10 +112,11 @@ void mbtiles_vector_datasource::init(mapnik::parameters const& params)
         throw mapnik::datasource_exception("MBTiles Plugin: parameter 'layer' is missing.");
     }
     layer_ = layer.get();
-    dataset_ = std::make_shared<sqlite_connection>(database_path_);
+    int sqlite_mode = SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_SHAREDCACHE;
+    dataset_ = std::make_shared<sqlite_connection>(database_path_, sqlite_mode);
     // Ensure that the tileset contains vector tiles
     std::shared_ptr<sqlite_resultset> result (dataset_->execute_query("SELECT value FROM metadata WHERE name = 'format';"));
-    if (result->is_valid() && result->step_next() && result->column_type(0) == SQLITE_TEXT && strcmp(result->column_text(0), "pbf"))
+    if (!result->is_valid() || !result->step_next() || result->column_type(0) != SQLITE_TEXT || strcmp(result->column_text(0), "pbf"))
     {
         throw mapnik::datasource_exception("MBTiles Plugin: " + database_path_ + " has unsupported vector tile format, expected 'pbf'.");
     }
@@ -130,7 +131,11 @@ void mbtiles_vector_datasource::init(mapnik::parameters const& params)
         result = dataset_->execute_query("SELECT value FROM metadata WHERE name = 'bounds';");
         if (result->is_valid() && result->step_next() && result->column_type(0) == SQLITE_TEXT)
         {
-            extent_.from_string(result->column_text(0));
+            const std::string extent_str = result->column_text(0);
+            if (extent_str.empty()) {
+                throw mapnik::datasource_exception("MBTiles Plugin: " + database_path_ + " has invalid extent.");
+            }
+            extent_.from_string(extent_str);
         }
     }
     if (!extent_.valid())
