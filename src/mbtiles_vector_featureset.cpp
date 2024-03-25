@@ -53,23 +53,30 @@ bool mbtiles_vector_featureset::valid() const
     return vector_tile_.get() != nullptr;
 }
 
+mapnik::feature_ptr mbtiles_vector_featureset::next_feature()
+{
+    mapnik::feature_ptr f = mapnik::feature_ptr();
+    if (valid()) {
+        f = vector_tile_->next();
+    }
+    return f;
+}
+
 mapnik::feature_ptr mbtiles_vector_featureset::next()
 {
     // If current tile is processed completely, go forward to the next tile.
     // else step forward to the next feature
-    mapnik::feature_ptr f = mapnik::feature_ptr();
-    if (!valid())
-    {
-        return f;
-    }
-    f = vector_tile_->next();
-    if (f)
-    {
+    mapnik::feature_ptr f = next_feature();
+    if (f) {
         return f;
     }
     while (next_tile() && open_tile() && valid())
     {
-        return vector_tile_->next();
+        f = next_feature();
+        if (f)
+        {
+            return f;
+        }
     }
     return mapnik::feature_ptr();
 }

@@ -43,6 +43,7 @@ public:
     virtual ~mbtiles_vector_featureset();
     mapnik::feature_ptr next();
 private:
+    mapnik::feature_ptr next_feature();
     bool valid() const;
     std::shared_ptr<sqlite_connection> database_;
     mapnik::context_ptr context_;
