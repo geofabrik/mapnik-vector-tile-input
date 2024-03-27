@@ -4,9 +4,11 @@ set_target_properties(input-mbtiles_vector PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     PREFIX ""
     SUFFIX ".input"
-    #LIBRARY_OUTPUT_DIRECTORY "${MAPNIK_OUTPUT_DIR}/plugins/input"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
-#mapnik_install_plugin(input-mbtiles_vector)
+install(TARGETS input-mbtiles_vector
+    LIBRARY DESTINATION ${MAPNIK_PLUGIN_INSTALL_DIR}
+)
 target_sources(input-mbtiles_vector PRIVATE
     mbtiles_vector_datasource.cpp
     mbtiles_vector_featureset.cpp

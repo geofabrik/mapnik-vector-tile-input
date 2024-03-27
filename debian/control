@@ -1,0 +1,18 @@
+Source: mapnik-vector-input
+Maintainer: Michael Reichert <michael.reichert@geofabrik.de>
+Section: libs
+Priority: optional
+Build-Depends: debhelper (>= 10~),
+               libmapnik-dev (>= 4.0),
+               libsqlite3-dev,
+               pkg-config,
+               zlib1g-dev
+Standards-Version: 4.5.1
+Homepage: https://github.com/geofabrik/mapnik-mbtiles-vector/
+
+Package: libmapnik4.0-vector-input
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Input plugin for vector tiles for the Mapnik map
+ rendering engine.

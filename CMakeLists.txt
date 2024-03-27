@@ -86,5 +86,22 @@ set(CMAKE_BUILD_TYPE ${build_type}
     "Choose the type of build, options are: ${CMAKE_CONFIGURATION_TYPES}."
     FORCE)
 
+#-----------------------------------------------------------------------------
+#
+#  Install Path for the Plugin
+#
+#-----------------------------------------------------------------------------
+# Install path
+if (NOT MAPNIK_PLUGIN_INSTALL_DIR)
+    execute_process(COMMAND mapnik-config --input-plugins
+        OUTPUT_VARIABLE MAPNIK_CONFIG_PLUGIN_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (NOT MAPNIK_CONFIG_PLUGIN_PATH)
+        message(FATAL_ERROR "Mapnik plugin path could not be found. Set the path with -DMAPNIK_PLUGIN_INSTALL_DIR.")
+    endif()
+endif()
+set(MAPNIK_PLUGIN_INSTALL_DIR ${MAPNIK_CONFIG_PLUGIN_PATH} CACHE STRING "Install directory for Mapnik input plugins")
+message(STATUS "Mapnik plugin path: ${MAPNIK_PLUGIN_INSTALL_DIR}")
+
 add_subdirectory(src)
 
