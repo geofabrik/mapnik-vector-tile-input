@@ -10,6 +10,25 @@ This repository holds the code of an [Mapnik](https://github.com/mapnik/mapnik) 
 * SQlite
 * Boost (String)
 
+## Building
+
+This project uses CMake for building:
+
+```sh
+mkdir build
+cd build
+cmake ..
+make
+```
+
+If dependencies are missing or could not be found, run `ccmake ..` to set their pathes manually.
+
+You can build a Debian package as well:
+
+```sh
+dpkg-buildpackage -us -uc -b
+```
+
 ## License
 
 This library is free software; you can redistribute it and/or
