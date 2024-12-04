@@ -60,7 +60,7 @@ mapnik::layer_descriptor mbtiles_vector_datasource::get_descriptor() const
     return desc_;
 }
 
-boost::optional<mapnik::datasource_geometry_t> mbtiles_vector_datasource::get_geometry_type() const
+std::optional<mapnik::datasource_geometry_t> mbtiles_vector_datasource::get_geometry_type() const
 {
     return mapnik::datasource_geometry_t::Collection;
 }
@@ -87,13 +87,13 @@ int mbtiles_vector_datasource::zoom_from_string(const char* z)
 
 void mbtiles_vector_datasource::init(mapnik::parameters const& params)
 {
-    boost::optional<std::string> file = params.get<std::string>("file");
+    std::optional<std::string> file = params.get<std::string>("file");
     if (!file)
     {
         throw mapnik::datasource_exception("mbtiles_vector Plugin: missing <file> parameter");
     }
 
-    boost::optional<std::string> base = params.get<std::string>("base");
+    std::optional<std::string> base = params.get<std::string>("base");
     if (base)
     {
         database_path_ = *base + "/" + *file;
@@ -106,12 +106,12 @@ void mbtiles_vector_datasource::init(mapnik::parameters const& params)
     {
         throw mapnik::datasource_exception("MBTiles Plugin: " + database_path_ + " does not exist");
     }
-    boost::optional<std::string> layer = params.get<std::string>("layer");
-    if (!layer)
-    {
+    std::optional<std::string> layer = params.get<std::string>("layer");
+    try {
+        layer_ = layer.value();
+    } catch (std::bad_optional_access&) {
         throw mapnik::datasource_exception("MBTiles Plugin: parameter 'layer' is missing.");
     }
-    layer_ = layer.get();
     int sqlite_mode = SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_SHAREDCACHE;
     dataset_ = std::make_shared<sqlite_connection>(database_path_, sqlite_mode);
     // Ensure that the tileset contains vector tiles
@@ -121,7 +121,7 @@ void mbtiles_vector_datasource::init(mapnik::parameters const& params)
         throw mapnik::datasource_exception("MBTiles Plugin: " + database_path_ + " has unsupported vector tile format, expected 'pbf'.");
     }
     // initialize envelope
-    boost::optional<std::string> ext = params.get<std::string>("extent");
+    std::optional<std::string> ext = params.get<std::string>("extent");
     if (ext && !ext->empty())
     {
         extent_.from_string(*ext);
@@ -158,12 +158,12 @@ void mbtiles_vector_datasource::init(mapnik::parameters const& params)
         maxzoom_ = zoom_from_string(result->column_text(0));
     }
     //TODO make zoom level variable
-    boost::optional<std::string> zoom = params.get<std::string>("zoom");
+    std::optional<std::string> zoom = params.get<std::string>("zoom");
     if (!zoom)
     {
         throw mapnik::datasource_exception("MBTiles Plugin: parameter 'zoom' missing");
     }
-    zoom_ = zoom_from_string(zoom.get());
+    zoom_ = zoom_from_string(zoom.value());
     // Get 'json' field
     result = dataset_->execute_query("SELECT value FROM metadata WHERE name = 'json';");
     if (result->is_valid() && result->step_next() && result->column_type(0) == SQLITE_TEXT)

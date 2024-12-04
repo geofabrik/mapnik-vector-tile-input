@@ -34,7 +34,6 @@
 #include <mapnik/feature_layer_desc.hpp>
 #include <mapnik/datasource_plugin.hpp>
 
-#include <boost/optional.hpp>
 #include <memory>
 
 #include <rapidjson/document.h>
@@ -54,7 +53,7 @@ public:
     mapnik::featureset_ptr features(mapnik::query const& q) const;
     mapnik::featureset_ptr features_at_point(mapnik::coord2d const& pt, double tol = 0) const;
     mapnik::box2d<double> envelope() const;
-    boost::optional<mapnik::datasource_geometry_t> get_geometry_type() const;
+    std::optional<mapnik::datasource_geometry_t> get_geometry_type() const;
     mapnik::layer_descriptor get_descriptor() const;
 
 private:
