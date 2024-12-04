@@ -8,6 +8,7 @@ set_target_properties(input-mbtiles_vector PROPERTIES
 )
 install(TARGETS input-mbtiles_vector
     LIBRARY DESTINATION ${MAPNIK_PLUGIN_INSTALL_DIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 target_sources(input-mbtiles_vector PRIVATE
     mbtiles_vector_datasource.cpp
