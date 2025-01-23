@@ -6,7 +6,7 @@ This repository holds the code of an [Mapnik](https://github.com/mapnik/mapnik) 
 
 ## Dependencies
 
-* Mapnik (not 3.1.0 but only newer unreleased versions)
+* Mapnik (>= 4.0)
 * SQlite
 * Boost (String)
 
