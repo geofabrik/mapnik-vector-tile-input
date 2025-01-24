@@ -1,0 +1,5 @@
+mapnik-vectortile-input (0.1.0-1+geofabrik1) UNRELEASED; urgency=medium
+
+  * Initial release.
+
+ -- Michael Reichert <michael.reichert@geofabrik.de>  Fri, 24 Jan 2025 15:20:35 +0100

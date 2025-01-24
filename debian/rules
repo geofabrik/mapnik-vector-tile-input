@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# Enable hardening build flags
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+# Verbose test output
+export VERBOSE=1
+
+CFLAGS += $(CPPFLAGS) -DNDEBUG
+CXXFLAGS += $(CPPFLAGS) -DNDEBUG
+
+%:
+	dh $@ --buildsystem cmake

@@ -1,0 +1,3 @@
+tar-ignore = ".project"
+tar-ignore = ".cproject"
+tar-ignore = ".settings/*"
