@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(mapnik-mbtiles-vector VERSION 0.0.1 LANGUAGES CXX C)
+project(mapnik-mbtiles-vector VERSION 0.1.0 LANGUAGES CXX C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -93,9 +93,16 @@ set(CMAKE_BUILD_TYPE ${build_type}
 #-----------------------------------------------------------------------------
 # Install path
 if (NOT MAPNIK_PLUGIN_INSTALL_DIR)
-    execute_process(COMMAND mapnik-config --input-plugins
+    # If Mapnik was built with CMake, pkgconf should return a resu.t
+    execute_process(COMMAND pkgconf --variable=plugins_dir libmapnik
         OUTPUT_VARIABLE MAPNIK_CONFIG_PLUGIN_PATH
         OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # Try mapnik-config (Mapnik built with SCons) instead.
+    if (NOT MAPNIK_CONFIG_PLUGIN_PATH)
+        execute_process(COMMAND mapnik-config --input-plugins
+            OUTPUT_VARIABLE MAPNIK_CONFIG_PLUGIN_PATH
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
     if (NOT MAPNIK_CONFIG_PLUGIN_PATH)
         message(FATAL_ERROR "Mapnik plugin path could not be found. Set the path with -DMAPNIK_PLUGIN_INSTALL_DIR.")
     endif()
