@@ -5,7 +5,7 @@ Priority: optional
 Build-Depends: cmake,
                debhelper-compat (= 13),
                libboost-dev,
-               libmapnik-dev (>= 4.0),
+               libmapnik-dev (>= 4.0.0),
                libprotozero-dev,
                libsqlite3-dev,
                rapidjson-dev,
