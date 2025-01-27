@@ -11,7 +11,10 @@ Build-Depends: cmake,
                rapidjson-dev,
                pkgconf
 Standards-Version: 4.7.0
+Vcs-Browser: https://github.com/geofabrik/mapnik-mbtiles-vector
+Vcs-Git: https://github.com/geofabrik/mapnik-mbtiles-vector.git
 Homepage: https://github.com/geofabrik/mapnik-mbtiles-vector/
+Rules-Requires-Root: no
 
 Package: libmapnik4.0-vectortile-input
 Architecture: any
