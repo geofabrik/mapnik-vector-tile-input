@@ -1,4 +1,4 @@
-mapnik-vectortile-input (0.1.0-1+geofabrik1) UNRELEASED; urgency=medium
+mapnik-vectortile-input (0.1.0-1+geofabrik1) unstable; urgency=medium
 
   * Initial release.
   * dpkg-source: Use extend-diff-ignore instead of tar-ignore
@@ -9,4 +9,4 @@ mapnik-vectortile-input (0.1.0-1+geofabrik1) UNRELEASED; urgency=medium
   * Make description of the package longer
   * [PATCH] Do not make the resulting library file executable
 
- -- Michael Reichert <michael.reichert@geofabrik.de>  Tue, 28 Jan 2025 15:40:20 +0100
+ -- Michael Reichert <michael.reichert@geofabrik.de>  Tue, 28 Jan 2025 15:54:21 +0100
