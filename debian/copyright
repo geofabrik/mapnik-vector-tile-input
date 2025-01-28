@@ -1,0 +1,66 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: *
+Copyright: 2015-2021, Artem Pavlenko
+           1991-1999, Free Software Foundation, Inc
+           2023, Geofabrik GmbH
+License: LGPL-2.1+
+
+Files: cmake/*
+       src/vector_tile_compression.cpp
+       src/vector_tile_compression.hpp
+       src/vector_tile_compression.ipp
+       src/vector_tile_geometry_decoder.cpp
+       src/vector_tile_geometry_decoder.hpp
+       src/vector_tile_geometry_decoder.ipp
+       src/vector_tile_projection.hpp
+Copyright: 2007, Andreas Schneider <mail@cynapses.org>
+           MapBox
+           2014, Maxim Dementyev <max@orofarne.ru>
+License: BSD-3-clause
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+ .
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in
+      the documentation and/or other materials provided with the
+      distribution.
+ .
+   3. The name of the author may not be used to endorse or promote
+      products derived from this software without specific prior
+      written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+ INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+License: LGPL-2.1+
+ This package is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License
+ along with this package; if not, write to the Free Software Foundation,
+ Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+Comment: on Debian systems, the complete text of the GNU Lesser General
+ Public License v2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
