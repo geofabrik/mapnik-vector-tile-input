@@ -1,3 +1,4 @@
+# SPDX-License-Identifier:  	LGPL-2.1-or-later
 add_library(input-mbtiles_vector MODULE)
 set_target_properties(input-mbtiles_vector PROPERTIES
     OUTPUT_NAME mbtiles_vector

@@ -1,3 +1,4 @@
+# SPDX: LGPL-2.1-or-later
 # - Try to find Mapnik
 # Once done this will define
 #

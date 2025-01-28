@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 cmake_minimum_required(VERSION 3.5.0)
 project(mapnik-mbtiles-vector VERSION 0.1.0 LANGUAGES CXX C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
