@@ -1,3 +1,9 @@
+mapnik-vectortile-input (0.1.0-1+geofabrik1~noble1) noble; urgency=medium
+
+  * Build for Ubuntu Noble
+
+ -- Michael Reichert <michael.reichert@geofabrik.de>  Tue, 28 Jan 2025 17:39:35 +0100
+
 mapnik-vectortile-input (0.1.0-1+geofabrik1) unstable; urgency=medium
 
   * Initial release.
