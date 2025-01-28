@@ -1,0 +1,26 @@
+From 9eb908b073ca469bdd5513cecdd0c3f33f4bfeed Mon Sep 17 00:00:00 2001
+From: Michael Reichert <michael.reichert@geofabrik.de>
+Date: Tue, 28 Jan 2025 13:34:22 +0100
+Subject: [PATCH] Add missing header
+
+G++ 14.2 is not able to build otherwise and would fail with:
+'uint8_t' does not name a type
+---
+ src/vector_tile_compression.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/vector_tile_compression.hpp b/src/vector_tile_compression.hpp
+index 3ca42c3..842b23c 100644
+--- a/src/vector_tile_compression.hpp
++++ b/src/vector_tile_compression.hpp
+@@ -29,6 +29,7 @@
+ #ifndef VECTOR_TILE_COMPRESSION_HPP_
+ #define VECTOR_TILE_COMPRESSION_HPP_
+ 
++#include <cstdint>
+ #include <string>
+ // zlib
+ #include <zlib.h>
+-- 
+2.34.1
+
