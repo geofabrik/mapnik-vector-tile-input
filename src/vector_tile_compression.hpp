@@ -29,6 +29,7 @@
 #ifndef VECTOR_TILE_COMPRESSION_HPP_
 #define VECTOR_TILE_COMPRESSION_HPP_
 
+#include <cstdint>
 #include <string>
 // zlib
 #include <zlib.h>
