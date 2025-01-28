@@ -1,5 +1,12 @@
 mapnik-vectortile-input (0.1.0-1+geofabrik1) UNRELEASED; urgency=medium
 
   * Initial release.
+  * dpkg-source: Use extend-diff-ignore instead of tar-ignore
+  * correct version requirement for Mapnik
+  * Set Rules-Requires-Root and Vcs- information
+  * [PATCH] Add missing header to build with G++ 14.2
+  * Add copyright file
+  * Make description of the package longer
+  * [PATCH] Do not make the resulting library file executable
 
- -- Michael Reichert <michael.reichert@geofabrik.de>  Fri, 24 Jan 2025 15:20:35 +0100
+ -- Michael Reichert <michael.reichert@geofabrik.de>  Tue, 28 Jan 2025 15:40:20 +0100
