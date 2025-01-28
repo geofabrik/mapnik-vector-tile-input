@@ -1,0 +1,26 @@
+Description: Do not make the plugin library file executable
+ The mapnik package includes a couple of plugins and does not make them
+ executable either.
+ .
+ mapnik-vectortile-input (0.1.0-1+geofabrik1) UNRELEASED; urgency=medium
+ .
+   * Initial release.
+Author: Michael Reichert <michael.reichert@geofabrik.de>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Last-Update: 2025-01-28
+
+--- mapnik-vectortile-input-0.1.0.orig/src/CMakeLists.txt
++++ mapnik-vectortile-input-0.1.0/src/CMakeLists.txt
+@@ -8,7 +8,6 @@ set_target_properties(input-mbtiles_vect
+ )
+ install(TARGETS input-mbtiles_vector
+     LIBRARY DESTINATION ${MAPNIK_PLUGIN_INSTALL_DIR}
+-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+ )
+ target_sources(input-mbtiles_vector PRIVATE
+     mbtiles_vector_datasource.cpp
