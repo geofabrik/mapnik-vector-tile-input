@@ -21,5 +21,6 @@ Architecture: any
 Depends: libmapnik4.0,
          ${shlibs:Depends},
          ${misc:Depends}
-Description: Input plugin for vector tiles for the Mapnik map
- rendering engine.
+Description: Input plugin for the Mapnik map rendering library to
+ use vector tiles in the Mapbox vector tile format as data source
+ for map rendering.
